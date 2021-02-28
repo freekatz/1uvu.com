@@ -1,1 +1,1 @@
-hugo && qshell qupload upload.json
+hugo --verbose && qshell qupload upload.json
