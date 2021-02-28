@@ -1,0 +1,5 @@
+upload.json
+tmp/*
+*.bak
+bak/*
+public/*

@@ -1,0 +1,1 @@
+hugo && qshell qupload upload.json
