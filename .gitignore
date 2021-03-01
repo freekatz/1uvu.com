@@ -3,5 +3,5 @@ tmp/*
 *.bak
 bak/*
 public/*
-delfilelist.txt
-puslish.sh
+pub.sh
+del.sh
