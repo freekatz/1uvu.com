@@ -1,7 +1,7 @@
-baseURL = "http://1uvu.com/"
+baseURL = "https://www.1uvu.com/"
 languageCode = "en-us"
-title = "Luv U"
-theme = "Luv U"
+title = "极客的一天"
+theme = "Leaveit"
 
 paginate = 12
 enableEmoji = true
@@ -43,13 +43,13 @@ preserveTaxonomyNames = true
     since = 2018
     author = "Jianhui.Zhang"                           # Author's name
     avatar = "/images/me/avatar.jpg"           # Author's avatar
-    subtitle = "命摇于世，救者自救，度者自度。"         # Subtitle
+    subtitle = "所谓极客，不过是对技术始终秉持热诚的普通人罢了。"         # Subtitle
     cdn_url = ""           # Base CDN URL
     home_mode = "" # post or other
 
     google_verification = ""
    
-    description = "" # site description
+    description = "一个对技术始终秉持热诚的普通人。" # site description
     keywords = "Blockchain, Golang, Rust, Backend Developer, Distributed System" # site keywords
 
     beian = "蒙ICP备19000730号"
@@ -58,13 +58,13 @@ preserveTaxonomyNames = true
     license= '本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可'
 
 [params.social]
-    GitHub = "xxoo"
-    Twitter = "xxoo"
-    Email   = "xxoo"
-    Instagram = "xxoo"
-    Wechat = "/images/me/wechat.png"  # Wechat QRcode image
-    Facebook = "xxoo"
-    Telegram = "xxoo"
-    Dribbble = "xxoo"
-    Medium = "xxoo"
+    GitHub = "1uvu"
+    Twitter = "jianhuizhang4"
+    Email   = "zjh98@vip.qq.com"
+    # Instagram = "xxoo"
+    Wechat = "/images/me/wechat.jpg"  # Wechat QRcode image
+    # Facebook = "xxoo"
+    # Telegram = "xxoo"
+    # Dribbble = "xxoo"
+    # Medium = "xxoo"
 
