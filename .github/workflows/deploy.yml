@@ -1,23 +1,20 @@
-name: Push to GitHub Pages on push to master
+name: deploy
+
 on:
   push:
     branches:
-      - master
+    - master
 
 jobs:
   build:
-    name: Deploy
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout master
-        uses: actions/checkout@v1
 
-      - name: Deploy the site
-        uses: benmatselby/hugo-deploy-gh-pages@master
-        env:
-          HUGO_VERSION: 0.81.0
-          TARGET_REPO: 1uvu/1uvu.github.io
-          TARGET_BRANCH: main
-          TOKEN: ${{ secrets.TOKEN }}
-          HUGO_ARGS: 
-          CNAME: benmatselby.github.io
+    steps:
+    - name: 'Building...'
+      uses: reuixiy/hugo-deploy@v1
+      env:
+        DEPLOY_REPO: 1uvu/1uvu.github.io
+        DEPLOY_BRANCH: deploy
+        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+        TZ: Asia/Shanghai
