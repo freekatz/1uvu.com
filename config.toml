@@ -44,7 +44,7 @@ preserveTaxonomyNames = true
     author = "Jianhui.Zhang"                           # Author's name
     avatar = "/images/me/avatar.jpg"           # Author's avatar
     subtitle = "所谓极客，不过是对技术始终秉持热诚的普通人罢了。"         # Subtitle
-    cdn_url = ""           # Base CDN URL
+    cdn_url = "https://1uvu.com/"           # Base CDN URL
     home_mode = "" # post or other
 
     google_verification = ""
