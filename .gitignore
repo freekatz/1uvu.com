@@ -2,6 +2,5 @@ upload.json
 tmp/*
 *.bak
 bak/*
-public/*
 pub.sh
 del.sh

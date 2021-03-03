@@ -1,0 +1,68 @@
+# link: https://sujingjhong.com/posts/how-to-deploy-hugo-automatically-with-github-actions/
+# author: lisez <mm4324@gmail.com>
+name: Auto publish to public site
+
+# 只有推送到 master 才自動化
+on:
+  push:
+    branches: 
+    - master
+
+jobs:
+  hugo-publish:
+     name: publish content to public site
+     runs-on: ubuntu-latest
+     steps:
+       # 使用當前的 repo
+       - name: checkout private repo
+         uses: actions/checkout@v2
+
+       # 因為目前的 repo 有使用到 submodule，所以 submodule 也要一併同步
+       # 不然原本的 repo 是沒有 submodule 的內容
+       - name: checkout submodules
+         shell: bash
+         run: |
+          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+       # 我的公開網站是放置在另一個 repo 所以這裡也要 clone 一份下來處理
+       # 因為我 Hugo 預設是產生檔案到 public 資料夾，所以這邊我也是 clone 到那裡
+       - name: checkout public repo
+         uses: actions/checkout@v2
+         with:
+          # 這裡是那個網站在 github 上的 repo 名稱
+          repository: 1uvu/1uvu.com
+          path: public
+          # 記得去產生一把 personal access token 放到 repo 的 secrets 裡
+          # 然後我 secrets 裡的名稱就叫 GITHUB_PAT，用別的名稱的話記得改掉
+          # 參考 https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token
+          token: ${{ secrets.HUGODEPLOY }}
+
+       # 使用別人做好的 Hugo Actions
+       - name: setup hugo
+         uses: peaceiris/actions-hugo@v2
+         with:
+           hugo-version: latest
+           extended: true
+
+       # 我發現 Hugo 會產生一堆 min.[hash].* 檔案，所以這裡我先把舊檔案清除
+       - name: cleanup files of public site
+         working-directory: ./public
+         shell: bash
+         run: find . -type f -name '*.min.*' -exec rm -f {} \;
+
+       # 開始用 Hugo 產生檔案囉
+       - name: build content to public site
+         working-directory: ./
+         run: hugo --minify --gc
+
+       # 將檔案 commit 到 網站 repo
+       - name: deploy and publish updates
+         working-directory: ./public
+         # user.email 還有 user.name 可以取自己喜歡的，一定要設定不然會出錯
+         run: |
+           git config --local user.email "zjh98@vip.qq.com"
+           git config --local user.name "1uvu"
+           git add . -A
+           git commit -m "[chore] Auto publish"
+           git push origin
