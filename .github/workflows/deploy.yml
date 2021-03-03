@@ -18,6 +18,6 @@ jobs:
           HUGO_VERSION: 0.81.0
           TARGET_REPO: 1uvu.github.io
           TARGET_BRANCH: main
-          TOKEN: c13678b157f54d817421f78514ccde2a778a43fe
+          TOKEN: d87ecf3c935a080e25882fb7995d8904a73b1ab5
           HUGO_ARGS: 
           CNAME: benmatselby.github.io
