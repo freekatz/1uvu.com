@@ -16,7 +16,7 @@ jobs:
         uses: benmatselby/hugo-deploy-gh-pages@master
         env:
           HUGO_VERSION: 0.81.0
-          TARGET_REPO: 1uvu.github.io
+          TARGET_REPO: 1uvu/1uvu.github.io
           TARGET_BRANCH: main
           TOKEN: ${{ secrets.TOKEN }}
           HUGO_ARGS: 
