@@ -3,3 +3,5 @@ tmp/*
 bak/*
 .ssh/*
 public/*
+*.py
+*.bat
