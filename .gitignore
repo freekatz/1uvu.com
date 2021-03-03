@@ -1,6 +1,4 @@
-upload.json
 tmp/*
 *.bak
 bak/*
-pub.sh
-del.sh
+.ssh/*
