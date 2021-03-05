@@ -1,6 +1,6 @@
 baseURL = "http://www.1uvu.com/"
 languageCode = "en-us"
-title = "极客的一天"
+title = "Luv U"
 theme = "Leaveit"
 
 paginate = 12
@@ -41,10 +41,10 @@ preserveTaxonomyNames = true
 
 [params]
     since = 2018
-    author = "Jianhui.Zhang"                           # Author's name
+    author = "ZJH"                           # Author's name
     avatar = "/images/me/avatar.jpg"           # Author's avatar
-    subtitle = "所谓极客，不过是对技术始终秉持热诚的普通人罢了。"         # Subtitle
-    cdn_url = "https://1uvu.com/"           # Base CDN URL
+    subtitle = "一个对技术始终秉持热诚的普通人。"         # Subtitle
+    cdn_url = "http://1uvu.com/"           # Base CDN URL
     home_mode = "" # post or other
 
     google_verification = ""

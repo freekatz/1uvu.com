@@ -1,13 +1,12 @@
 ---
-title: "About"
-date: 2021-03-03T19:46:22+08:00
+title: "About ZJH"
+date: 2021-03-05T13:32:20+08:00
+draft: false
 ---
 
 ### Hey, I'm ZJH. 🤘
 
 Graduated in Information Security，a programming lover，in Blockchain technology and its research.
-
-
 
 And now focus on Smart Contract Faults, including Smart Contract <b>Security</b> and <b>Fault-Tolerance</b>.
 
