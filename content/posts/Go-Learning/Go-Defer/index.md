@@ -35,7 +35,7 @@ author: 1uvu
 
 可以使用 defer 完成一些函数中的收尾工作，如：**文件关闭**、**关闭互斥锁**等等。
 
-其中一定需要知道的技巧是通过定义 **defer 匿名函数**的方式来实习**错误恢复 (Recover)**和**异常 (Panic)处理**。
+其中一定需要知道的技巧是通过定义 **defer 匿名函数**的方式来实现**错误恢复 (Recover)**和**异常 (Panic)处理**。
 
 看一下官方博客的例子：[Defer, Panic, and Recover - Go 语言博客 (go-zh.org)](https://blog.go-zh.org/defer-panic-and-recover)
 
