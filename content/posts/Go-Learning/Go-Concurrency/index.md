@@ -1,6 +1,6 @@
 ---
 title: "Go Concurrency"
-date: 2021-03-23T16:29:53+08:00
+date: 2021-03-27T16:29:53+08:00
 aliases: []
 categories:
  - Programming Language
@@ -13,7 +13,38 @@ draft: false
 author: 1uvu
 ---
 
-本文基于 tour.go-zh.org、MIT 6.824 Lecture 2 及 Efficient Go 中对应的部分内容。
+本文基于 tour.go-zh.org、MIT 6.824 Lecture 2、[Go 语言并发编程与 Context | Go 语言设计与实现 (draveness.me)](https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-context/) 及 Efficient Go 中对应的部分内容。
+
+## 目录
+
+-   并发的本质
+    -   io复用-并发
+    -   cpu复用-并行
+-   go 中的并发编程
+    -   go程
+    -   调度器
+    -   基本原语
+    -   扩展原语
+    -   定时器
+    -   channel
+-   并发的挑战
+    -   互斥与同步
+        -   共享数据的竞争：互斥问题
+        -   线程间的协调：同步问题
+    -   死锁与恢复
+        -   死锁的几种常见情况
+        -   避免死锁的几种方式
+        -   恢复死锁的几种方式
+-   使用通信来共享内存
+    -   context
+    -   channel
+    -   rpc
+-   并发的实例
+    -   Web Crawler
+    -   KV
+    -   Voting
+
+
 
 ## 并发编程
 
@@ -41,7 +72,7 @@ IO 复用的本质是，在一个线程占用内存等互斥资源的同时，�
 
 - 共享数据。要确保访问互斥资源的原子性，需要对于代码中涉及共享数据的变量和处理逻辑进行严格地控制。Go 的 sync 标准库提供了 sync.Mutex (互斥锁)来解决这个问题。
 
-- 线程间的协调。如在生产者和消费者的实例中，生产者需要唤醒消费者，消费者也要确定在何时停止阻塞或是直接放弃执行。Go 的 stnc 标准库中也提供了 sync.Cond (条件变量)、sync.WaitGroup (等待队列) 及 channels (管道通信) 数据结构来解决这种问题。
+- 线程间的协调。如在生产者和消费者的实例中，生产者需要唤醒消费者，消费者也要确定在何时停止阻塞或是直接放弃执行。Go 的 sync 标准库中也提供了 sync.Cond (条件变量)、sync.WaitGroup (等待队列) 及 channels (管道通信) 数据结构来解决这种问题。
 
 - 死锁。以 channel 为例，有如下三种会触发死锁的常见情况：
 
