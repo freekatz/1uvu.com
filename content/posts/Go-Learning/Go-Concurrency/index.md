@@ -81,21 +81,99 @@ Goroutine 的状态迁移也比较复杂，暂不深究【此处待补充】。
 
 下面，简单地说明一下各种原语的用法
 
-**sync.Mutex** 是最基本的互斥锁，提供了 `Lock()` 和 `UnLock()` 两个方法。其中 Lock 方法调用时，如果当前互斥锁的状态不是 0 (即已经上锁)，那么会执行 `lockSlow()` 以尝试通过**自旋**等方式来获取锁。
+**sync.Mutex** 是最基本的互斥锁，提供了 `Lock()` 和 `Unlock()` 两个方法。其中 Lock 方法调用时，如果当前互斥锁的状态不是 0 (即已经上锁)，那么会执行 `lockSlow()` 以尝试通过**自旋**等方式来获取锁。
 
 自旋是一种多线程同步机制，在进入自旋的过程中会持续占用 CPU 检查是否可进入自旋，进入自旋可避免 Goroutine 的切换，能够更好地利用多核资源，恰当使用可以极大改善程序性能，所以上述的进入自旋条件非常苛刻。
 
-当调用 UnLock 时首先执行快解锁，如果失败则继续执行 `unlockSlow()` 慢解锁。
+当调用 Unlock 时首先执行快解锁，如果失败则继续执行 `unlockSlow()` 慢解锁。
 
-**sync.RWMutex** 是一种细粒度的互斥锁，可以理解为读者写者问题的一种复现，不限制并发读，但限制并发读写和并发写写。因此，它具有两对方法，分别为  `Lock()` 和 `UnLock()` 及 `RLock()` 和 `RUnLock()`
+Mutex 是不可重入锁，所以需要特别注意避免因冲入导致的死锁。
+
+另外，也要尽量减少一个 goroutine Lock 而另一个 goroutine Unlock 的逻辑来避免死锁。
+
+**sync.RWMutex** 是一种细粒度的互斥锁，可以理解为读者写者问题的一种复现，不限制并发读，但限制并发读写和并发写写。因此，它具有两对方法，分别为  `Lock()` 和 `Unlock()` 及 `RLock()` 和 `RUnlock()`。
+
+读写锁对于读进行了优化，适合**写少读多**的状态，对**并发读**很适合。
+
+不要在递归调用读锁。因为如果每一次调用都有新的一组 reader 来等待同一个读锁，这时就会发送死锁。
 
 **sync.WaitGroup** 可以实现多个 Goroutine 的并发执行，提供了 Add()、Wait() 及 Done() 三个方法。Done 只是向 Add 传入 -1，同样也可以向 Add 传入确保等待组计数器非负的任意负数，来快速唤醒一系列 Goroutine，而 Wait 方法在计数器为 0 后会立即唤醒其余睡眠的 Goroutine 并立即返回，WaitGroup 只有在 Wait 方法返回后才可以被重用。
 
 **sync.Once** 确保 Go 程序执行期间某段代码只会执行一次，提供了 Do 方法。
 
-**sync.Cond** 是条件变量，它可以实现满足特定条件下同时唤醒多个 Goroutine 称为 **“条件广播”**。提供了 `Wait()` 和 `Broadcast()` 方法，使用 `sync.NewCond(&sync.Mutex{})` 来创建。
+不要在 Do 的函数调用中使用 Once，会发生死锁。
 
-【什么时候使用什么原语】
+Once 可以用来实现单例，Go 中单例的实现：
+
+-   常量
+-   package 变量 (eager)
+-   init 函数 (eager)
+-   GetInstance() (lazy)
+-   通过 sync.Once 或者类似实现
+
+**sync.Cond** 是条件变量，它可以实现满足特定条件下同时唤醒多个 Goroutine 称为 **“条件广播”**。提供了 `Wait()` ，`Signal()` 和 `Broadcast()` 方法，使用 `sync.NewCond(&sync.Mutex{})` 来创建。
+
+Cond 可以使用在多个 Reader 等待共享资源 ready 的场景。
+
+以上原语使用时均要注意：变量被第一次使用后，就不能被复制了，特别注意那些隐藏的复制。
+
+## 通信机制
+
+### Context
+
+`context.Context` 是用于 goroutine 树间的信号同步机制，在 Goroutine 构成的树形结构中对信号进行同步以减少计算资源的浪费是 Context 的最大作用。
+
+### Channel
+
+上面提到了 Go 中提供的各种基本原语。在并发编程中，为实现对共享变量的正确访问和修改需要十分精确的控制，否则程序可能会出现未知的行为甚至会出现死锁，这其实是很困难的。
+
+Go 中，goroutine 被设计为从不会主动共享，在任意时刻，同时只会有一个 Go 程能够访问共享数据，这才源头设计上就杜绝了数据竞争的发生。也就是说，会导致数据竞争这种异常行为发生的只有不成熟的程序员 (在编译程序时可以加上 -race tag 来检查代码中潜在的可能导致数据竞争的逻辑)。
+
+在文章 Effective Go 中提出了一个口号：
+
+> 不要通过共享内存来通信，而应通过通信来共享内存。
+
+这句话指的是，在 Go 中，我们无需花费精力设计代码实现确保通信过程的同步，通信本身就是同步的，因此，我们也无需考虑其他同步了。
+
+Go 语言提供了一种不同的并发模型，即通信顺序进程（Communicating sequential processes，CSP）[1](https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-channel/#fn:1)。Goroutine 和 Channel 分别对应 CSP 中的实体和传递信息的媒介，Goroutine 之间会通过 Channel 传递数据。
+
+Go 中的 Channel是一种特殊的数据类型，目前的 Channel 收发操作均遵循了先进先出的设计，具体规则如下：
+
+-   先从 Channel 读取数据的 Goroutine 会先接收到数据；
+-   先向 Channel 发送数据的 Goroutine 会得到先发送数据的权利；
+
+Channel 可以分为不带缓冲区的同步 channel 及带环形缓冲区的异步 channel。
+
+同步模式下的 channel 发送和接收需要**一一配对**，不然发送方会被一直阻塞，直到数据被接收。
+
+异步模式下的 channel 如果缓冲区已满，发送的主进程或者协程会被阻塞，如果未满不会被阻塞，如果为空，接收的 goroutine 会被阻塞。因此需要一些方式，如同步 channel 来控制是否退出发送的主进程，否则接收的 goroutine 可能会一直被阻塞。另外，异步 channel 使用完毕需要关闭，因为只有有 goroutine 来处理这个 channel 就会被永久阻塞，产生死锁。
+
+channel 和 mutex 适用于不同的场景，一个是通信，一个是保护。
+
+**Channel**
+
+-   传递数据的 owner
+-   分发任务
+-   交流异步结果
+-   任务编排
+
+**Mutex**
+
+-   cache
+-   状态
+-   临界区
+
+### RESTful 和 RPC
+
+这里主要讨论一下两者的区别和各自的优点。
+
+RESTful (Representational State Transfer，表示层状态转移)。RESTful通常采用http+JSON实现。
+
+RPC (Remote Procedure Call，远程过程调用)，可以基于 HTTP、TCP 或 Socket 实现。
+
+基于 RPC 的 API 更加适用行为(也就是命令和过程)，基于 REST 的 API 更加适用于构建模型(也就是资源和实体)，处理CRUD。
+
+另外，还有一种说法，RPC 的定制性更强，适用于逻辑更加复杂的内部场景，而 REST 更适合作为跨部分甚至跨企业的接口提供方式。
 
 ## 并发的挑战
 
@@ -114,34 +192,362 @@ Goroutine 的状态迁移也比较复杂，暂不深究【此处待补充】。
 
   可以采取周期性的锁检查或是基于 RPC、channel 通信的方式来解决。
 
-## 通过通信来共享内存
-
-上面提到了 Go 中解决并发编程存在问题的各种方式。在并发编程中，为实现对共享变量的正确访问和修改需要十分精确的控制，否则程序可能会出现未知的行为甚至会出现死锁，这其实是很困难的。
-
-Go 中，Go 程被设计为从不会主动共享，在任意时刻，同时只会有一个 Go 程能够访问共享数据，这才源头设计上就杜绝了数据竞争的发生。也就是说，会导致数据竞争这种异常行为发生的只有不成熟的程序员 (在编译程序时可以加上 -race tag 来检查代码中潜在的可能导致数据竞争的逻辑)。
-
-在文章 Effective Go 中提出了一个口号：
-
-> 不要通过共享内存来通信，而应通过通信来共享内存。
-
-在 Go 中，我们无需花费精力设计代码实现确保通信过程的同步，通信本身就是同步的，因此，我们也无需考虑其他同步了。
-
-### Context
-
-### Channel
-
-Go 中的 Channel是一种特殊的数据类型，
-
-### HTTP
-
-### RPC
-
 ## 并发的实例
+
+以下实例来自于 MIT Course 6.824 Lecture 2
 
 ### Web Crawler
 
-### Voting Counter
+```golang
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+//
+// Serial crawler
+
+// url 是当前待获取的 url
+// fetched 保存 url 的获取状态
+//
+func Serial(url string, fetcher Fetcher, fetched map[string]bool) {
+	if fetched[url] {
+		return
+	}
+	fetched[url] = true // 更新当前 url 为已被获取
+	urls, err := fetcher.Fetch(url)
+	if err != nil {
+		return
+	}
+	// 用递归实现 DFS 获取 page 包含的每个 url
+	for _, u := range urls {
+		Serial(u, fetcher, fetched)
+	}
+	return
+}
+
+//
+// Concurrent crawler with shared state and Mutex
+// 定义获取状态
+// mu 原语为修改状态上锁
+// fetched 记录每个 url string 是否已被获取
+//
+type fetchState struct {
+	mu      sync.Mutex
+	fetched map[string]bool
+}
+
+func ConcurrentMutex(url string, fetcher Fetcher, f *fetchState) {
+	// 使用或修改状态时上锁
+	f.mu.Lock()
+	already := f.fetched[url]
+	f.fetched[url] = true
+	f.mu.Unlock()
+
+	if already {
+		return
+	}
+
+	urls, err := fetcher.Fetch(url)
+	if err != nil {
+		return
+	}
+	// 并发获取当前 page 的 urls
+	// done 是一个 WaitGroup, 用来存放处于阻塞状态的 goroutine 线程
+	var done sync.WaitGroup
+	for _, u := range urls {
+		done.Add(1) // 一个 Add 需要一个 Done 来平衡
+		//u2 := u
+		//go func() {
+		// defer done.Done()
+		// ConcurrentMutex(u2, fetcher, f)
+		//}()
+		go func(u string) {
+			defer done.Done()
+			ConcurrentMutex(u, fetcher, f)
+		}(u) // 带有参数的匿名函数, 启动 goroutine 来执行
+	}
+	done.Wait()
+	return
+}
+
+func makeState() *fetchState {
+	f := &fetchState{}
+	f.fetched = make(map[string]bool)
+	return f
+}
+
+//
+// Concurrent crawler with channels
+//
+func worker(url string, ch chan []string, fetcher Fetcher) {
+	urls, err := fetcher.Fetch(url)
+	// "<-" 符号表示数据流的方向,
+	// 前面是消息的接收者, 后面代表发生者
+	if err != nil {
+		ch <- []string{} // channel 中已无 urls 待获取
+	} else {
+		ch <- urls // 将 urls 放入通道
+	}
+}
+
+func coordinator(ch chan []string, fetcher Fetcher) {
+	n := 1 // n 记录通道中的 urls 数, ch 初始包含一个 url
+	fetched := make(map[string]bool)
+	for urls := range ch { // 遍历 ch, 唤起 worker goroutine 线程
+		for _, u := range urls {
+			if fetched[u] == false {
+				fetched[u] = true
+				n += 1
+				// 启动线程来执行 ch, 如果不使用线程启动,
+				// 会由于 for 循环的多个 worker 同时等待 ch 引发死锁
+				// 尝试
+				// worker(u, ch, fetcher)
+				go worker(u, ch, fetcher)
+			}
+		}
+		n -= 1
+		if n == 0 {
+			break
+		}
+	}
+}
+
+func ConcurrentChannel(url string, fetcher Fetcher) {
+	ch := make(chan []string)
+	go func() {
+		ch <- []string{url} // 启动一个 channel 线程
+	}()
+	// 由于此处的 ch 是一个缓存为空的同步通道, 因此,
+	// 如果启动 goroutine 来执行 coordinator 会直接跳出循环而提前结束
+	// go coordinator(ch, fetcher)
+	coordinator(ch, fetcher)
+}
+
+func main() {
+	fmt.Printf("=== Serial===\n")
+	Serial("http://golang.org/", fetcher, make(map[string]bool))
+
+	fmt.Printf("=== ConcurrentMutex ===\n")
+	ConcurrentMutex("http://golang.org/", fetcher, makeState())
+
+	fmt.Printf("=== ConcurrentChannel ===\n")
+	ConcurrentChannel("http://golang.org/", fetcher)
+}
+
+//
+// Fetcher
+//
+type Fetcher interface {
+	// Fetch returns a slice of URLs found on the page.
+	Fetch(url string) (urls []string, err error)
+}
+
+// fakeFetcher is Fetcher that returns canned results.
+
+// 保存每个 page 获取到的 content 和 urls
+//
+type fakeFetcher map[string]*fakeResult
+
+type fakeResult struct {
+	body string
+	urls []string
+}
+
+// 为 fakeFetcher 类型实现 Fetcher 接口
+func (f fakeFetcher) Fetch(url string) ([]string, error) {
+	if res, ok := f[url]; ok {
+		fmt.Printf("found:   %s\n", url)
+		return res.urls, nil
+	}
+	fmt.Printf("missing: %s\n", url)
+	return nil, fmt.Errorf("not found: %s", url)
+}
+
+// fetcher is a populated fakeFetcher.
+
+// 初始化一个 fetcher
+var fetcher = fakeFetcher{
+	"http://golang.org/": &fakeResult{
+		"The Go Programming Language",
+		[]string{
+			"http://golang.org/pkg/",
+			"http://golang.org/cmd/",
+		},
+	},
+	"http://golang.org/pkg/": &fakeResult{
+		"Packages",
+		[]string{
+			"http://golang.org/",
+			"http://golang.org/cmd/",
+			"http://golang.org/pkg/fmt/",
+			"http://golang.org/pkg/os/",
+		},
+	},
+	"http://golang.org/pkg/fmt/": &fakeResult{
+		"Package fmt",
+		[]string{
+			"http://golang.org/",
+			"http://golang.org/pkg/",
+		},
+	},
+	"http://golang.org/pkg/os/": &fakeResult{
+		"Package os",
+		[]string{
+			"http://golang.org/",
+			"http://golang.org/pkg/",
+		},
+	},
+}
+
+```
 
 ### KV Storage Server
+
+```golang
+package main
+
+import (
+	"fmt"
+	"log"
+	"net"
+	"net/rpc"
+	"sync"
+)
+
+//
+// Common RPC request/reply definitions
+//
+const (
+	OK       = "OK"
+	ErrNoKey = "ErrNoKey"
+)
+
+type Err string
+
+type PutArgs struct {
+	Key   string
+	Value string
+}
+
+type PutReply struct {
+	Err Err
+}
+
+type GetArgs struct {
+	Key string
+}
+
+type GetReply struct {
+	Err   Err
+	Value string
+}
+
+//
+// Client
+//
+
+func connect() *rpc.Client {
+	client, err := rpc.Dial("tcp", ":1234")
+	if err != nil {
+		log.Fatal("dialing:", err)
+	}
+	return client
+}
+
+func get(key string) string {
+	client := connect()
+	args := GetArgs{"subject"}
+	reply := GetReply{}
+	err := client.Call("KV.Get", &args, &reply)
+	if err != nil {
+		log.Fatal("error:", err)
+	}
+	client.Close()
+	return reply.Value
+}
+
+func put(key string, val string) {
+	client := connect()
+	args := PutArgs{"subject", "6.824"}
+	reply := PutReply{}
+	err := client.Call("KV.Put", &args, &reply)
+	if err != nil {
+		log.Fatal("error:", err)
+	}
+	client.Close()
+}
+
+//
+// Server
+//
+
+type KV struct {
+	mu   sync.Mutex
+	data map[string]string
+}
+
+func server() {
+	kv := new(KV)
+	kv.data = map[string]string{}
+	rpcs := rpc.NewServer()
+	rpcs.Register(kv)
+	l, e := net.Listen("tcp", ":1234")
+	if e != nil {
+		log.Fatal("listen error:", e)
+	}
+
+	// 循环启动 goroutine 接收 client 的连接请求
+	go func() {
+		for {
+			conn, err := l.Accept()
+			if err == nil {
+				go rpcs.ServeConn(conn)
+			} else {
+				break
+			}
+		}
+		l.Close()
+	}()
+}
+
+func (kv *KV) Get(args *GetArgs, reply *GetReply) error {
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+
+	val, ok := kv.data[args.Key]
+	if ok {
+		reply.Err = OK
+		reply.Value = val
+	} else {
+		reply.Err = ErrNoKey
+		reply.Value = ""
+	}
+	return nil
+}
+
+func (kv *KV) Put(args *PutArgs, reply *PutReply) error {
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+
+	kv.data[args.Key] = args.Value
+	reply.Err = OK
+	return nil
+}
+
+//
+// main
+//
+
+func main() {
+	server()
+	put("subject", "6.824")
+	fmt.Printf("Put(subject, 6.824) done\n")
+	fmt.Printf("get(subject) -> %s\n", get("subject"))
+}
+
+```
 
 
