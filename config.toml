@@ -45,7 +45,7 @@ preserveTaxonomyNames = true
     avatar = "/images/me/avatar.jpg"           # Author's avatar
     subtitle = "一个对技术始终秉持热诚的普通人。"         # Subtitle
     cdn_url = "http://1uvu.com/"           # Base CDN URL
-    home_mode = "" # post or other
+    home_mode = "post" # post or other
 
     google_verification = ""
    

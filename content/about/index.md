@@ -4,30 +4,38 @@ date: 2021-03-05T13:32:20+08:00
 draft: false
 ---
 
-### Hey, I'm ZJH. 🤘
+Hi，这里是 ZJH，一个处于沉淀期的菜鸟。
 
-Graduated in Information Security，a programming lover，in Blockchain technology and its research.
+此页面会给出接下来某些阶段的目标及进展。
 
-And now focus on Smart Contract Faults, including Smart Contract <b>Security</b> and <b>Fault-Tolerance</b>.
+## 2021 年要完成的几件事儿
 
-### Contact ways (Please state your origin and purpose firstly)
+### 书籍
 
-| Platforms | Contract Ways                                      |
-| --------- | -------------------------------------------------- |
-| Website   | [1uvu.com](https://1uvu.com)                       |
-| E-mail    | [zjh98@vip.qq.com](mailto://zjh98@vip.qq.com)      |
-| QQ        | 2016969619                                         |
-| Wechat    | 1uvu_zhang                                         |
-| Github    | [1uvu](https://github.com/1uvu)                    |
-| Zhihu     | [1uvu](https://www.zhihu.com/people/zjh567)        |
-| Bilibili  | [极客的一天](https://space.bilibili.com/259976518) |
+-   [ ] 《Go 语言学习笔记》
+-   [ ] 《Golang 101》
+-   [ ] 《STL 源码刨析》
+-   [ ] 《Redis 实战》Or《Redis 设计与实现》
+-   [ ] 《算法设计》
+-   [ ] 《Rust 程序设计语言》
+-   [ ] 设计模式
+-   [ ] MySQL
 
-### Skill tree：
+### 项目
 
-***_is mastered***, **_is learning** and the others is to learn
+-   [ ] 分布式 Pastebin/CodeReview
+-   [ ] Fabric 2.0 同态加密支持
+-   [ ] 医疗区块链
 
-- Language: **Golang**, **Node**, **Rust**, Solidity, ***Python***, ***Java***, ***C***
-- General skills: ***Web crawler***, ***Data science***, ***Software engineer***, Fuzing, Graph network
-- Blockchain skills: **Fabric**, Ethereum
-- Mathematical base: Formal apporach, Compute theory, **Logic**, **Algorithm**, Discrete mathematics
-- Other skills: ***Network development***, ***Debug and Reverse***, ***Cryptography***
+### 算法
+
+-   [ ] CodeCraft（算法题解）：50 道
+-   [ ] Leetcode：150 道
+
+### 学习
+
+-   [ ] Golang 源码阅读
+-   [ ] MIT 6.824：实验一
+-   [ ] PingCAP talent-plan
+-   [ ] Golang proposal 文档
+
