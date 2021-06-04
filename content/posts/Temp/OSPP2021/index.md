@@ -149,10 +149,15 @@ IPFS 提供了多种通过编程语言访问 IPFS 网的途径，包括 [^6]：
 # 参考文献
 
 [^1]: [介绍 | BeyondStorage](https://beyondstorage.io/zh-CN/docs/)
+
 [^2]: [go-storage | BeyondStorage](https://beyondstorage.io/zh-CN/docs/go-storage/index#全面的操作支持)
+
 [^3]: [beyondstorage/go-storage: A unified storage layer for Golang, let's go beyond storage. ](https://github.com/beyondstorage/go-storage)
+
 [^4]: [beyondstorage/go-service-example: The example for creating a go-storage service.](https://github.com/beyondstorage/go-service-example)
+
 [^5]: [IPFS Powers the Distributed Web](https://ipfs.io/)
+
 [^6]: [Go-IPFS API | IPFS Docs](https://docs.ipfs.io/reference/go/api/)
 
 [^7]: [operations/storager | BeyondStorage](https://beyondstorage.io/docs/go-storage/operations/storager/index)
