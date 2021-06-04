@@ -1,4 +1,4 @@
 ---
-title: "Temp posts"
+title: "Temp Posts"
 aliases: [/temp/]
 ---

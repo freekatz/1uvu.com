@@ -1,3 +1,18 @@
+---
+title: "go-storage for IPFS"
+date: 2021-06-04
+draft: false
+categories: 
+ - Temp
+tags: 
+ - OSPP2021
+description: 
+slug: ""
+featured_image:
+author: 1uvu
+---
+
+
 <h1 align="center">项目名称：go-storage 的 ipfs</h1>
 
 # 一、项目详细方案
